@@ -36,6 +36,8 @@ header2        .+\n[=-]+\n
 bulletstart    ^[-]+[ ]
 codeline       [ ]
 
+email 		[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]+
+
 protocol       (http|ftp)s?\:\/\/
 subdomain      {nmchar}+\.
 urlpath        [\/]|{nmchar}+
@@ -63,6 +65,7 @@ nl             \n|\r\n|\r|\f
 {codespan}                      {xng_markdown_consume(yytext, MARKDOWN_CODESPAN, yyscanner);}
 {header1}                       {xng_markdown_consume(yytext, MARKDOWN_HEADER, yyscanner);}
 {header2}                       {xng_markdown_consume(yytext, MARKDOWN_MULTILINEHEADER, yyscanner);}
+{email} 			  {xng_markdown_consume(yytext, MARKDOWN_EMAIL, yyscanner);}
 {url}                           {xng_markdown_consume(yytext, MARKDOWN_URL, yyscanner);}
 {href}                          {xng_markdown_consume(yytext, MARKDOWN_HREF, yyscanner);}
 {bulletstart}                   {xng_markdown_consume(yytext, MARKDOWN_BULLETSTART, yyscanner);}
