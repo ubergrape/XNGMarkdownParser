@@ -218,6 +218,13 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
 }
 
 - (NSDictionary *)attributesForFontWithName:(NSString *)fontName {
+    
+    
+    // Change background color in addition to font, if it's a code part
+    if (fontName == self.codeFontName) {
+        return @{NSFontAttributeName: [UINSFont fontWithName:fontName size:self.topFont.pointSize], NSBackgroundColorAttributeName: [UIColor whiteColor]};
+    }
+    
     return @{NSFontAttributeName: [UINSFont fontWithName:fontName size:self.topFont.pointSize]};
 }
 
@@ -269,6 +276,11 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
             [attributes addEntriesFromDictionary:@{NSStrikethroughStyleAttributeName: @(NSUnderlineStyleSingle)}];
             break;
         }
+//        case MARKDOWN_CODEBLOCK: { // ``` ```
+//            textAsString = [textAsString substringWithRange:NSMakeRange(1, textAsString.length - 2)];
+//            [attributes addEntriesFromDictionary:[self attributesForFontWithName:self.codeFontName]];
+//            break;
+//        }
         case MARKDOWN_CODESPAN: { // ` `
             textAsString = [textAsString substringWithRange:NSMakeRange(1, textAsString.length - 2)];
             [attributes addEntriesFromDictionary:[self attributesForFontWithName:self.codeFontName]];

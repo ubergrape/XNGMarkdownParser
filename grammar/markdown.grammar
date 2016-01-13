@@ -49,6 +49,7 @@ em             {em1}|{em2}
 strong         {strong1}|{strong2}
 strongem       {strongem1}|{strongem2}
 strikethrough  ~~.*?~~
+codeblock	```.*?```
 codespan       `.*?`
 
 url            {protourl}|{optprotourl}
@@ -62,6 +63,7 @@ nl             \n|\r\n|\r|\f
 {strong}                        {xng_markdown_consume(yytext, MARKDOWN_STRONG, yyscanner);}
 {strongem}                      {xng_markdown_consume(yytext, MARKDOWN_STRONGEM, yyscanner);}
 {strikethrough}                 {xng_markdown_consume(yytext, MARKDOWN_STRIKETHROUGH, yyscanner);}
+{codeblock}                      {xng_markdown_consume(yytext, MARKDOWN_CODESPAN, yyscanner);}
 {codespan}                      {xng_markdown_consume(yytext, MARKDOWN_CODESPAN, yyscanner);}
 {header1}                       {xng_markdown_consume(yytext, MARKDOWN_HEADER, yyscanner);}
 {header2}                       {xng_markdown_consume(yytext, MARKDOWN_MULTILINEHEADER, yyscanner);}
