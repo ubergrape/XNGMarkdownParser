@@ -35,12 +35,12 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
 
 @implementation XNGMarkdownParser {
     NSMutableDictionary *_headerFonts;
-
+    
     NSMutableArray *_bulletStarts;
-
+    
     NSMutableAttributedString *_accum;
     NSMutableArray *_links;
-
+    
     UINSFont *_topFont;
     NSMutableDictionary *_fontCache;
 }
@@ -48,16 +48,16 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
 - (id)init {
     if ((self = [super init])) {
         _headerFonts = [NSMutableDictionary dictionary];
-
+        
         self.paragraphFont = [UINSFont systemFontOfSize:12];
         self.boldFontName = [UINSFont boldSystemFontOfSize:12].fontName;
         self.italicFontName = @"Helvetica-Oblique";
         self.boldItalicFontName = @"Helvetica-BoldOblique";
         self.codeFontName = @"Courier";
+        self.quoteFontName = @"Avenir-LightOblique";;
         self.linkFontName = self.paragraphFont.fontName;
         self.topAttributes = nil;
         self.shouldParseLinks = YES;
-
         XNGMarkdownParserHeader header = XNGMarkdownParserHeader1;
         for (CGFloat headerFontSize = 24; headerFontSize >= 14; headerFontSize -= 2, header++) {
             [self setFont:[UINSFont systemFontOfSize:headerFontSize] forHeader:header];
@@ -73,10 +73,11 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
     parser.italicFontName = self.italicFontName;
     parser.boldItalicFontName = self.boldItalicFontName;
     parser.codeFontName = self.codeFontName;
+    parser.quoteFontName = self.quoteFontName;
     parser.linkFontName = self.linkFontName;
     parser.topAttributes = self.topAttributes;
     parser.shouldParseLinks = self.shouldParseLinks;
-
+    
     for (XNGMarkdownParserHeader header = XNGMarkdownParserHeader1; header <= XNGMarkdownParserHeader6; ++header) {
         [parser setFont:[self fontForHeader:header] forHeader:header];
     }
@@ -99,41 +100,41 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
     _links = [NSMutableArray array];
     _bulletStarts = [NSMutableArray array];
     _accum = [[NSMutableAttributedString alloc] init];
-
+    
     const char *cstr = [string UTF8String];
     FILE *markdownin = fmemopen((void *)cstr, [string lengthOfBytesUsingEncoding:NSUTF8StringEncoding], "r");
-
+    
     yyscan_t scanner;
-
+    
     xng_markdownlex_init(&scanner);
     xng_markdownset_extra((__bridge void *)(self), scanner);
     xng_markdownset_in(markdownin, scanner);
     xng_markdownlex(scanner);
     xng_markdownlex_destroy(scanner);
-
+    
     fclose(markdownin);
-
+    
     if (_bulletStarts.count > 0) {
         // Treat nested bullet points as flat ones...
-
+        
         // Finish off the previous dash and start a new one.
         NSInteger lastBulletStart = [[_bulletStarts lastObject] intValue];
         [_bulletStarts removeLastObject];
-
+        
         [_accum addAttributes:[self paragraphStyle]
                         range:NSMakeRange(lastBulletStart, _accum.length - lastBulletStart)];
     }
-
+    
 #if TARGET_OS_MAC
     const BOOL shouldAddLinks = YES;
 #elif __IPHONE_OS_VERSION_MAX_ALLOWED >= 70000
     const BOOL shouldAddLinks = (NSLinkAttributeName != nil);
 #endif
-
+    
     if (self.shouldParseLinks && shouldAddLinks) {
         [self addLinksToAttributedString];
     }
-
+    
     return [_accum copy];
 }
 
@@ -161,13 +162,13 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
     CGFloat paragraphSpacingBefore = 0.0;
     CGFloat firstLineHeadIndent = 15.0;
     CGFloat headIndent = 30.0;
-
+    
     CGFloat firstTabStop = 35.0; // width of your indent
     CGFloat lineSpacing = 0.45;
-
+    
 #ifdef TARGET_OS_IPHONE
     NSTextAlignment alignment = NSTextAlignmentLeft;
-
+    
     NSMutableParagraphStyle *style = [[NSMutableParagraphStyle alloc] init];
     style.paragraphSpacing = paragraphSpacing;
     style.paragraphSpacingBefore = paragraphSpacingBefore;
@@ -176,16 +177,16 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
     style.lineSpacing = lineSpacing;
     style.alignment = alignment;
     style.tabStops = @[[[NSTextTab alloc] initWithTextAlignment:alignment location:firstTabStop options:@{}]];
-
+    
     return @{NSParagraphStyleAttributeName: style};
 #else
     CTTextAlignment alignment = kCTLeftTextAlignment;
-
+    
     CTTextTabRef tabArray[] = {CTTextTabCreate(0, firstTabStop, NULL)};
-
+    
     CFArrayRef tabStops = CFArrayCreate(kCFAllocatorDefault, (const void **)tabArray, 1, &kCFTypeArrayCallBacks);
     CFRelease(tabArray[0]);
-
+    
     CTParagraphStyleSetting altSettings[] =
     {
         {kCTParagraphStyleSpecifierLineSpacing, sizeof(CGFloat), &lineSpacing},
@@ -196,15 +197,15 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
         {kCTParagraphStyleSpecifierParagraphSpacing, sizeof(CGFloat), &paragraphSpacing},
         {kCTParagraphStyleSpecifierParagraphSpacingBefore, sizeof(CGFloat), &paragraphSpacingBefore}
     };
-
+    
     CTParagraphStyleRef style;
     style = CTParagraphStyleCreate(altSettings, sizeof(altSettings) / sizeof(CTParagraphStyleSetting) );
-
+    
     if ( style == NULL ) {
         NSLog(@"*** Unable To Create CTParagraphStyle in apply paragraph formatting");
         return nil;
     }
-
+    
     return [NSDictionary dictionaryWithObjectsAndKeys:(__bridge id)style, (NSString *)kCTParagraphStyleAttributeName, nil];
 #endif
 }
@@ -225,6 +226,11 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
         return @{NSFontAttributeName: [UINSFont fontWithName:fontName size:self.topFont.pointSize], NSBackgroundColorAttributeName: [UIColor whiteColor]};
     }
     
+    // If quote, add background color
+    if (fontName == self.quoteFontName) {
+        return @{NSFontAttributeName: [UINSFont fontWithName:fontName size:self.topFont.pointSize], NSForegroundColorAttributeName: [UIColor lightGrayColor], NSBackgroundColorAttributeName: [UIColor colorWithRed:248.0f / 255.0f green:248.0f / 255.0f blue:248.0f / 255.0f alpha:1.0f]};
+    }
+    
     return @{NSFontAttributeName: [UINSFont fontWithName:fontName size:self.topFont.pointSize]};
 }
 
@@ -235,7 +241,7 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
 - (void)recurseOnString:(NSString *)string withFont:(UINSFont *)font {
     XNGMarkdownParser *recursiveParser = [self copy];
     recursiveParser->_topFont = font;
-
+    
     NSAttributedString *recursedString =[recursiveParser attributedStringFromMarkdownString:string];
     NSMutableAttributedString *mutableRecursiveString = [[NSMutableAttributedString alloc] initWithAttributedString:recursedString];
     [mutableRecursiveString addAttributes:@{NSFontAttributeName : font}
@@ -245,7 +251,7 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
 
 - (void)consumeToken:(XNGMarkdownParserCode)token text:(char *)text {
     NSString *textAsString = [[NSString alloc] initWithCString:text encoding:NSUTF8StringEncoding];
-
+    
     NSMutableDictionary *attributes;
     if (self.topAttributes != nil) {
         attributes = [NSMutableDictionary dictionaryWithDictionary:self.topAttributes];
@@ -253,7 +259,7 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
         attributes = [NSMutableDictionary dictionary];
     }
     [attributes addEntriesFromDictionary:[self attributesForFont:self.topFont]];
-
+    
     XNGMarkdownParserCode codeToken = token;
     switch (codeToken) {
         case MARKDOWN_EM: { // * *
@@ -276,6 +282,23 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
             [attributes addEntriesFromDictionary:@{NSStrikethroughStyleAttributeName: @(NSUnderlineStyleSingle)}];
             break;
         }
+        case MARKDOWN_BLOCKQUOTE: { // >
+            
+            //            // Always color the whole line!
+            //            textAsString = [textAsString stringByAppendingString:@"\n"];
+            
+            [attributes addEntriesFromDictionary:[self attributesForFontWithName:self.quoteFontName]];
+            
+            // Second character is a blank space? Trim it!
+            if ([@" "  isEqual: [textAsString substringWithRange:NSMakeRange(1, 1)]]) {
+                textAsString = [textAsString substringWithRange:NSMakeRange(2, textAsString.length - 2)];
+            } else {
+                textAsString = [textAsString substringWithRange:NSMakeRange(1, textAsString.length - 1)];
+            }
+            
+            break;
+            
+        }
         case MARKDOWN_CODEBLOCK: { // ``` ```
             textAsString = [textAsString substringWithRange:NSMakeRange(4, textAsString.length - 7)];
             [attributes addEntriesFromDictionary:[self attributesForFontWithName:self.codeFontName]];
@@ -290,10 +313,10 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
             NSRange rangeOfNonHash = [textAsString rangeOfCharacterFromSet:[[NSCharacterSet characterSetWithCharactersInString:@"#"] invertedSet]];
             if (rangeOfNonHash.length > 0) {
                 textAsString = [[textAsString substringFromIndex:rangeOfNonHash.location] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-
+                
                 XNGMarkdownParserHeader header = (XNGMarkdownParserHeader)(rangeOfNonHash.location - 1);
                 [self recurseOnString:textAsString withFont:[self fontForHeader:header]];
-
+                
                 // We already appended the recursive parser's results in recurseOnString.
                 textAsString = nil;
             }
@@ -309,23 +332,23 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
             } else if ([[components objectAtIndex:1] rangeOfString:@"-"].length > 0) {
                 font = [self fontForHeader:XNGMarkdownParserHeader2];
             }
-
+            
             [self recurseOnString:textAsString withFont:font];
-
+            
             // We already appended the recursive parser's results in recurseOnString.
             textAsString = nil;
             break;
         }
         case MARKDOWN_PARAGRAPH: {
             textAsString = @"\n\n";
-
+            
             if (_bulletStarts.count > 0) {
                 // Treat nested bullet points as flat ones...
-
+                
                 // Finish off the previous dash and start a new one.
                 NSInteger lastBulletStart = [[_bulletStarts lastObject] intValue];
                 [_bulletStarts removeLastObject];
-
+                
                 [_accum addAttributes:[self paragraphStyle]
                                 range:NSMakeRange(lastBulletStart, _accum.length - lastBulletStart)];
             }
@@ -335,15 +358,15 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
             NSInteger numberOfDashes = [textAsString rangeOfString:@" "].location;
             if (_bulletStarts.count > 0 && _bulletStarts.count <= numberOfDashes) {
                 // Treat nested bullet points as flat ones...
-
+                
                 // Finish off the previous dash and start a new one.
                 NSInteger lastBulletStart = [[_bulletStarts lastObject] intValue];
                 [_bulletStarts removeLastObject];
-
+                
                 [_accum addAttributes:[self paragraphStyle]
                                 range:NSMakeRange(lastBulletStart, _accum.length - lastBulletStart)];
             }
-
+            
             [_bulletStarts addObject:@(_accum.length)];
             textAsString = @"•\t";
             break;
@@ -369,23 +392,23 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
         case MARKDOWN_HREF: { // [Title] (url "tooltip")
             textAsString = [textAsString stringByReplacingOccurrencesOfString:@"\\[" withString:@"["];
             textAsString = [textAsString stringByReplacingOccurrencesOfString:@"\\]" withString:@"]"];
-
+            
             NSRange rangeOfFirstOpenBracket = [textAsString rangeOfString:@"[" options:0];
             NSRange rangeOfLastCloseBracket = [textAsString rangeOfString:@"]" options:NSBackwardsSearch];
             NSRange rangeOfLastOpenParenthesis = [textAsString rangeOfString:@"(" options:NSBackwardsSearch];
             NSRange rangeOfLastCloseParenthesis = [textAsString rangeOfString:@")" options:NSBackwardsSearch];
-
+            
             NSRange linkTitleRange = NSMakeRange(rangeOfFirstOpenBracket.location + 1,
                                                  rangeOfLastCloseBracket.location - rangeOfFirstOpenBracket.location - 1);
             NSRange linkURLRange = NSMakeRange(rangeOfLastOpenParenthesis.location + 1,
                                                rangeOfLastCloseParenthesis.location - rangeOfLastOpenParenthesis.location - 1);
-
+            
             if (linkTitleRange.location != NSNotFound && linkURLRange.location != NSNotFound) {
                 XNGMarkdownLink *link = [[XNGMarkdownLink alloc] init];
-
+                
                 link.url = [textAsString substringWithRange:linkURLRange];
                 link.range = NSMakeRange(_accum.length, linkTitleRange.length);
-
+                
                 [_links addObject:link];
                 textAsString = [textAsString substringWithRange:linkTitleRange];
             }
@@ -395,7 +418,7 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
             break;
         }
     }
-
+    
     if (textAsString != nil) {
         NSAttributedString *attributedString = [[NSAttributedString alloc] initWithString:textAsString
                                                                                attributes:attributes];
