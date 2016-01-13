@@ -55,6 +55,7 @@ typedef NS_ENUM (NSUInteger, XNGMarkdownParserHeader) {
 @property (nonatomic, copy) NSString *italicFontName; // Default: Helvetica-Oblique
 @property (nonatomic, copy) NSString *boldItalicFontName; // Default: Helvetica-BoldOblique
 @property (nonatomic, copy) NSString *codeFontName; // Default: Courier
+@property (nonatomic, copy) NSString *quoteFontName;
 @property (nonatomic, copy) NSString *linkFontName; // Default: paragraphFont
 @property (nonatomic, assign) BOOL shouldParseLinks; // Default: YES
 
