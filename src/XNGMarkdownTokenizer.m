@@ -12277,7 +12277,7 @@ YY_RULE_SETUP
 case 5:
 YY_RULE_SETUP
 #line 66 "markdown.grammar"
-{xng_markdown_consume(yytext, MARKDOWN_CODESPAN, yyscanner);}
+{xng_markdown_consume(yytext, MARKDOWN_CODEBLOCK, yyscanner);}
 	YY_BREAK
 case 6:
 YY_RULE_SETUP

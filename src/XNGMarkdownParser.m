@@ -276,11 +276,11 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
             [attributes addEntriesFromDictionary:@{NSStrikethroughStyleAttributeName: @(NSUnderlineStyleSingle)}];
             break;
         }
-//        case MARKDOWN_CODEBLOCK: { // ``` ```
-//            textAsString = [textAsString substringWithRange:NSMakeRange(1, textAsString.length - 2)];
-//            [attributes addEntriesFromDictionary:[self attributesForFontWithName:self.codeFontName]];
-//            break;
-//        }
+        case MARKDOWN_CODEBLOCK: { // ``` ```
+            textAsString = [textAsString substringWithRange:NSMakeRange(1, textAsString.length - 2)];
+            [attributes addEntriesFromDictionary:[self attributesForFontWithName:self.codeFontName]];
+            break;
+        }
         case MARKDOWN_CODESPAN: { // ` `
             textAsString = [textAsString substringWithRange:NSMakeRange(1, textAsString.length - 2)];
             [attributes addEntriesFromDictionary:[self attributesForFontWithName:self.codeFontName]];
