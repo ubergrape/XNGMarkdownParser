@@ -49,7 +49,7 @@ em             {em1}|{em2}
 strong         {strong1}|{strong2}
 strongem       {strongem1}|{strongem2}
 strikethrough  ~~.*?~~
-codeblock	```.*?```
+codeblock	```(.|\n)*?```
 codespan       `.*?`
 
 url            {protourl}|{optprotourl}
