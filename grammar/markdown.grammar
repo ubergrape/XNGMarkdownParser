@@ -34,6 +34,7 @@ strongem2      ___[^_]*___
 header1        ^#{1,6}[^#\n$]*[$\n]
 header2        .+\n[=-]+\n
 bulletstart    ^[-]+[ ]
+blockquote     ^>.*
 codeline       [ ]
 
 email 		[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]+
@@ -71,6 +72,7 @@ nl             \n|\r\n|\r|\f
 {url}                           {xng_markdown_consume(yytext, MARKDOWN_URL, yyscanner);}
 {href}                          {xng_markdown_consume(yytext, MARKDOWN_HREF, yyscanner);}
 {bulletstart}                   {xng_markdown_consume(yytext, MARKDOWN_BULLETSTART, yyscanner);}
+{blockquote}                    {xng_markdown_consume(yytext, MARKDOWN_BLOCKQUOTE, yyscanner);}
 
 {phrase}                        {xng_markdown_consume(yytext, MARKDOWN_PHRASE, yyscanner);}
 {word}                          {xng_markdown_consume(yytext, MARKDOWN_WORD, yyscanner);}

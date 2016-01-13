@@ -277,7 +277,7 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
             break;
         }
         case MARKDOWN_CODEBLOCK: { // ``` ```
-            textAsString = [textAsString substringWithRange:NSMakeRange(1, textAsString.length - 2)];
+            textAsString = [textAsString substringWithRange:NSMakeRange(4, textAsString.length - 7)];
             [attributes addEntriesFromDictionary:[self attributesForFontWithName:self.codeFontName]];
             break;
         }

@@ -28,6 +28,7 @@ const char* xng_markdownnames[] = {
   "PARAGRAPH",
   "NEWLINE",
   "BULLETSTART",
+    "MARKDOWNBLOCKQUOTE",
     "MARKDOWNCODEBLOCK",
   "MARKDOWNCODESPAN",
   "UNKNOWN"
