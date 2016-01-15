@@ -250,9 +250,14 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
 }
 
 - (void)consumeToken:(XNGMarkdownParserCode)token text:(char *)text {
+    
+    // In case we need to format two substrings of a token differently, we can use 'secondTextAsString' & 'secondAttributes'
     NSString *textAsString = [[NSString alloc] initWithCString:text encoding:NSUTF8StringEncoding];
+    NSString *secondTextAsString = @"";
     
     NSMutableDictionary *attributes;
+    NSMutableDictionary *secondAttributes = [NSMutableDictionary dictionary];
+    
     if (self.topAttributes != nil) {
         attributes = [NSMutableDictionary dictionaryWithDictionary:self.topAttributes];
     } else {
@@ -284,10 +289,23 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
         }
         case MARKDOWN_BLOCKQUOTE: { // >
             
-            //            // Always color the whole line!
-            //            textAsString = [textAsString stringByAppendingString:@"\n"];
+            NSDictionary *attributesToAdd = [self attributesForFontWithName:self.quoteFontName];
             
-            [attributes addEntriesFromDictionary:[self attributesForFontWithName:self.quoteFontName]];
+            // Add attributes for whole string except for last '\n' (if there are two)
+            if ([@"\n"  isEqual: [textAsString substringWithRange:NSMakeRange(textAsString.length - 1, 1)]] &&
+                [@"\n"  isEqual: [textAsString substringWithRange:NSMakeRange(textAsString.length - 2, 1)]]) {
+                // Add attributes for whole string except for last character
+                
+                // Trim last char
+                textAsString = [textAsString substringWithRange:NSMakeRange(0, textAsString.length - 1)];
+                
+                // Add no attributes for last char
+                secondTextAsString = @"\n";
+                
+            }
+            
+            // Add attributes to remaining string
+            [attributes addEntriesFromDictionary:attributesToAdd];
             
             // Second character is a blank space? Trim it!
             if ([@" "  isEqual: [textAsString substringWithRange:NSMakeRange(1, 1)]]) {
@@ -419,9 +437,15 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
         }
     }
     
-    if (textAsString != nil) {
-        NSAttributedString *attributedString = [[NSAttributedString alloc] initWithString:textAsString
-                                                                               attributes:attributes];
+    if (textAsString != nil && secondTextAsString != nil) {
+        NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:textAsString
+                                                                                             attributes:attributes];
+        
+        if (![secondTextAsString isEqualToString:@""]) {
+            [attributedString appendAttributedString:[[NSMutableAttributedString alloc] initWithString:secondTextAsString
+                                                                                            attributes:secondAttributes]];
+        }
+        
         [_accum appendAttributedString:attributedString];
     }
 }
