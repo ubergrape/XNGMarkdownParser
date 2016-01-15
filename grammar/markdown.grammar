@@ -34,7 +34,7 @@ strongem2      ___[^_]*___
 header1        ^#{1,6}[^#\n$]*[$\n]
 header2        .+\n[=-]+\n
 bulletstart    ^[-]+[ ]
-blockquote     ^> (.|\n)*(\n\n|$)
+blockquote     ^>(.|\n)*(\n\n|$)
 codeline       [ ]
 
 email 		[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]+
