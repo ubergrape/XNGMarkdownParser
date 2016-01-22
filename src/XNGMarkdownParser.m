@@ -251,6 +251,16 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
 
 - (void)consumeToken:(XNGMarkdownParserCode)token text:(char *)text {
     
+    
+    NSString *string = [NSString stringWithFormat:@"%s" , text];
+    
+    string = [string stringByReplacingOccurrencesOfString:@"\n" withString:@"\\n"];
+//    string = [string stringByReplacingOccurrencesOfString:@" " withString:@"_"];
+    
+    NSString *tokenString = @"";
+    
+    
+    
     // In case we need to format two substrings of a token differently, we can use 'secondTextAsString' & 'secondAttributes'
     NSString *textAsString = [[NSString alloc] initWithCString:text encoding:NSUTF8StringEncoding];
     NSString *secondTextAsString = @"";
@@ -270,21 +280,25 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
         case MARKDOWN_EM: { // * *
             textAsString = [textAsString substringWithRange:NSMakeRange(1, textAsString.length - 2)];
             [attributes addEntriesFromDictionary:[self attributesForFontWithName:self.italicFontName]];
+            tokenString = @"MARKDOWN_EM";
             break;
         }
         case MARKDOWN_STRONG: { // ** **
             textAsString = [textAsString substringWithRange:NSMakeRange(2, textAsString.length - 4)];
             [attributes addEntriesFromDictionary:[self attributesForFontWithName:self.boldFontName]];
+            tokenString = @"MARKDOWN_STRONG";
             break;
         }
         case MARKDOWN_STRONGEM: { // *** ***
             textAsString = [textAsString substringWithRange:NSMakeRange(3, textAsString.length - 6)];
             [attributes addEntriesFromDictionary:[self attributesForFontWithName:self.boldItalicFontName]];
+            tokenString = @"MARKDOWN_STRONGEM";
             break;
         }
         case MARKDOWN_STRIKETHROUGH: { // ~~ ~~
             textAsString = [textAsString substringWithRange:NSMakeRange(2, textAsString.length - 4)];
             [attributes addEntriesFromDictionary:@{NSStrikethroughStyleAttributeName: @(NSUnderlineStyleSingle)}];
+            tokenString = @"MARKDOWN_STRIKETHROUGH";
             break;
         }
         case MARKDOWN_BLOCKQUOTE: { // >
@@ -314,17 +328,20 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
                 textAsString = [textAsString substringWithRange:NSMakeRange(1, textAsString.length - 1)];
             }
             
+            tokenString = @"MARKDOWN_BLOCKQUOTE";
             break;
             
         }
         case MARKDOWN_CODEBLOCK: { // ``` ```
             textAsString = [textAsString substringWithRange:NSMakeRange(4, textAsString.length - 7)];
             [attributes addEntriesFromDictionary:[self attributesForFontWithName:self.codeFontName]];
+            tokenString = @"MARKDOWN_CODEBLOCK";
             break;
         }
         case MARKDOWN_CODESPAN: { // ` `
             textAsString = [textAsString substringWithRange:NSMakeRange(1, textAsString.length - 2)];
             [attributes addEntriesFromDictionary:[self attributesForFontWithName:self.codeFontName]];
+            tokenString = @"MARKDOWN_CODESPAN";
             break;
         }
         case MARKDOWN_HEADER: { // ####
@@ -338,6 +355,7 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
                 // We already appended the recursive parser's results in recurseOnString.
                 textAsString = nil;
             }
+            tokenString = @"MARKDOWN_HEADER";
             break;
         }
         case MARKDOWN_MULTILINEHEADER: {
@@ -355,6 +373,7 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
             
             // We already appended the recursive parser's results in recurseOnString.
             textAsString = nil;
+            tokenString = @"MARKDOWN_MULTILINEHEADER";
             break;
         }
         case MARKDOWN_PARAGRAPH: {
@@ -370,6 +389,7 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
                 [_accum addAttributes:[self paragraphStyle]
                                 range:NSMakeRange(lastBulletStart, _accum.length - lastBulletStart)];
             }
+            tokenString = @"MARKDOWN_PARAGRAPH";
             break;
         }
         case MARKDOWN_BULLETSTART: {
@@ -387,10 +407,12 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
             
             [_bulletStarts addObject:@(_accum.length)];
             textAsString = @"•\t";
+            tokenString = @"MARKDOWN_BULLETSTART";
             break;
         }
         case MARKDOWN_NEWLINE: {
             textAsString = @"";
+            tokenString = @"MARKDOWN_NEWLINE";
             break;
         }
         case MARKDOWN_EMAIL: {
@@ -398,6 +420,7 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
             link.url = [@"mailto:" stringByAppendingString:textAsString];
             link.range = NSMakeRange(_accum.length, textAsString.length);
             [_links addObject:link];
+            tokenString = @"MARKDOWN_EMAIL";
             break;
         }
         case MARKDOWN_URL: {
@@ -405,6 +428,7 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
             link.url = textAsString;
             link.range = NSMakeRange(_accum.length, textAsString.length);
             [_links addObject:link];
+            tokenString = @"MARKDOWN_URL";
             break;
         }
         case MARKDOWN_HREF: { // [Title] (url "tooltip")
@@ -430,9 +454,11 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
                 [_links addObject:link];
                 textAsString = [textAsString substringWithRange:linkTitleRange];
             }
+            tokenString = @"MARKDOWN_HREF";
             break;
         }
         default: {
+            tokenString = @"DEFAULT";
             break;
         }
     }
@@ -448,6 +474,9 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
         
         [_accum appendAttributedString:attributedString];
     }
+    
+    NSLog(@"%@", tokenString);
+    NSLog(@"%@", string);
 }
 
 @end

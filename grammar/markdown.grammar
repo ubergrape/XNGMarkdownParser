@@ -31,27 +31,28 @@ strongem1      \*\*\*[^\*]*\*\*\*
 em2            _[^_]*_
 strong2        __[^_]*__
 strongem2      ___[^_]*___
-header1        ^#{1,6}[^#\n$]*[$\n]
+header1        ^#{1,6}.*(grapedollar1234|\n)
 header2        .+\n[=-]+\n
 bulletstart    ^[-]+[ ]
-blockquote     ^>(.|\n)*(\n\n|$)
+liststart    	^[0-9]+\.[ ]
+blockquote     ^>(.\n|.|\n.)*?(\n|grapedollar1234)
 codeline       [ ]
 
 email 		[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]+
 
-protocol       (http|ftp)s?\:\/\/
+protocol       (https?|ftps?|git|ssh|svn)\:\/\/
 subdomain      {nmchar}+\.
 urlpath        [\/]|{nmchar}+
 protourl       {protocol}[^ \n]+
-optprotourl    {protocol}?{subdomain}*{nmchar}+\.{nmchar}+{urlpath}*?
+optprotourl    {protocol}?{subdomain}*{nmchar}+\.[a-zA-Z]+{urlpath}*?
 href           \[(\\\[|[^\[])+\]\(([^\)]+)\)
 
 em             {em1}|{em2}
 strong         {strong1}|{strong2}
 strongem       {strongem1}|{strongem2}
 strikethrough  ~~.*?~~
-codeblock	```(.|\n)*?```
-codespan       `.*?`
+codeblock	```([^`]+|\n|``?[^`])*```
+codespan       `[^`]*`
 
 url            {protourl}|{optprotourl}
 
