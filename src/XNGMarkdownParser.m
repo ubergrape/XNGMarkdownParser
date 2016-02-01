@@ -97,12 +97,17 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
 }
 
 - (NSAttributedString *)attributedStringFromMarkdownString:(NSString *)string {
+    
+    // Add "grapedollar1234" to end to mark end of string, since the normal regex way seems not to work with this
+    NSMutableString *tempString = [string mutableCopy];
+    [tempString stringByAppendingString:@"grapedollar1234"];
+    
     _links = [NSMutableArray array];
     _bulletStarts = [NSMutableArray array];
     _accum = [[NSMutableAttributedString alloc] init];
     
-    const char *cstr = [string UTF8String];
-    FILE *markdownin = fmemopen((void *)cstr, [string lengthOfBytesUsingEncoding:NSUTF8StringEncoding], "r");
+    const char *cstr = [tempString UTF8String];
+    FILE *markdownin = fmemopen((void *)cstr, [tempString lengthOfBytesUsingEncoding:NSUTF8StringEncoding], "r");
     
     yyscan_t scanner;
     
@@ -134,6 +139,10 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
     if (self.shouldParseLinks && shouldAddLinks) {
         [self addLinksToAttributedString];
     }
+    
+    // Remove "grapedollar1234" again!
+    NSRange grapeDollarRange = [[_accum string] rangeOfString:@"grapedollar1234"];
+    [_accum replaceCharactersInRange:grapeDollarRange withString:@""];
     
     return [_accum copy];
 }
