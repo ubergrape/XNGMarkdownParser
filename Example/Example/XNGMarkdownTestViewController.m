@@ -1,5 +1,5 @@
 #import "XNGMarkdownTestViewController.h"
-#import <XNGMarkdownParser/XNGMarkdownParser.h>
+#import "XNGMarkdownParser.h"
 
 @interface XNGMarkdownTestViewController ()
 
