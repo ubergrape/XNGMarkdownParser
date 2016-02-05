@@ -11,6 +11,7 @@
 		758049271C50F5640006B104 /* XNGMarkdownParser.m in Sources */ = {isa = PBXBuildFile; fileRef = 758049221C50F5640006B104 /* XNGMarkdownParser.m */; };
 		758049281C50F5640006B104 /* XNGMarkdownTokenizer.m in Sources */ = {isa = PBXBuildFile; fileRef = 758049231C50F5640006B104 /* XNGMarkdownTokenizer.m */; };
 		758049291C50F5640006B104 /* XNGMarkdownTokens.m in Sources */ = {isa = PBXBuildFile; fileRef = 758049251C50F5640006B104 /* XNGMarkdownTokens.m */; };
+		75CC63591C64D6EB0050E245 /* all_together_short.txt in Resources */ = {isa = PBXBuildFile; fileRef = 75CC63581C64D6EB0050E245 /* all_together_short.txt */; };
 		C08F344D19CB24A700520D5A /* XNGMarkdownTestViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C08F344C19CB24A700520D5A /* XNGMarkdownTestViewController.m */; };
 		C0CF276519CB2300005EF111 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C0CF276419CB2300005EF111 /* Foundation.framework */; };
 		C0CF276719CB2300005EF111 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C0CF276619CB2300005EF111 /* CoreGraphics.framework */; };
@@ -41,6 +42,7 @@
 		758049231C50F5640006B104 /* XNGMarkdownTokenizer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = XNGMarkdownTokenizer.m; sourceTree = "<group>"; };
 		758049241C50F5640006B104 /* XNGMarkdownTokens.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XNGMarkdownTokens.h; sourceTree = "<group>"; };
 		758049251C50F5640006B104 /* XNGMarkdownTokens.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = XNGMarkdownTokens.m; sourceTree = "<group>"; };
+		75CC63581C64D6EB0050E245 /* all_together_short.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = all_together_short.txt; sourceTree = "<group>"; };
 		C08F344B19CB24A700520D5A /* XNGMarkdownTestViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XNGMarkdownTestViewController.h; sourceTree = "<group>"; };
 		C08F344C19CB24A700520D5A /* XNGMarkdownTestViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = XNGMarkdownTestViewController.m; sourceTree = "<group>"; };
 		C0CF276119CB2300005EF111 /* Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Example.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -140,6 +142,7 @@
 		C0CF276B19CB2300005EF111 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				75CC63581C64D6EB0050E245 /* all_together_short.txt */,
 				C0CF276C19CB2300005EF111 /* Example-Info.plist */,
 				C0CF276D19CB2300005EF111 /* InfoPlist.strings */,
 				C0CF277019CB2300005EF111 /* main.m */,
@@ -224,6 +227,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				75CC63591C64D6EB0050E245 /* all_together_short.txt in Resources */,
 				C0CF276F19CB2300005EF111 /* InfoPlist.strings in Resources */,
 				C0CF277719CB2300005EF111 /* Images.xcassets in Resources */,
 			);
