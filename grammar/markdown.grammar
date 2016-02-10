@@ -31,11 +31,11 @@ strongem1      \*\*\*[^\*]*\*\*\*
 em2            _[^_]*_
 strong2        __[^_]*__
 strongem2      ___[^_]*___
-header1        ^#{1,6}.*(grapedollar1234|\n)
+header1        ^#{1,6}.*(grapedollarXYZ|\n)
 header2        .+\n[=-]+\n
 bulletstart    ^[-]+[ ]
 liststart    	^[0-9]+\.[ ]
-blockquote     ^>\n?(.\n|.)*?(\n+|grapedollar1234)
+blockquote     ^>\n?(.\n|.)*?(\n+|grapedollarXYZ)
 codeline       [ ]
 
 email 		[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]+
