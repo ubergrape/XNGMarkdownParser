@@ -354,38 +354,6 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
             //            tokenString = @"MARKDOWN_CODESPAN";
             break;
         }
-        case MARKDOWN_HEADER: { // ####
-            NSRange rangeOfNonHash = [textAsString rangeOfCharacterFromSet:[[NSCharacterSet characterSetWithCharactersInString:@"#"] invertedSet]];
-            if (rangeOfNonHash.length > 0) {
-                textAsString = [[textAsString substringFromIndex:rangeOfNonHash.location] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-                
-                XNGMarkdownParserHeader header = (XNGMarkdownParserHeader)(rangeOfNonHash.location - 1);
-                [self recurseOnString:textAsString withFont:[self fontForHeader:header]];
-                
-                // We already appended the recursive parser's results in recurseOnString.
-                textAsString = nil;
-            }
-            //            tokenString = @"MARKDOWN_HEADER";
-            break;
-        }
-        case MARKDOWN_MULTILINEHEADER: {
-            textAsString = [textAsString stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-            NSArray *components = [textAsString componentsSeparatedByString:@"\n"];
-            textAsString = [components objectAtIndex:0];
-            UINSFont *font = nil;
-            if ([[components objectAtIndex:1] rangeOfString:@"="].length > 0) {
-                font = [self fontForHeader:XNGMarkdownParserHeader1];
-            } else if ([[components objectAtIndex:1] rangeOfString:@"-"].length > 0) {
-                font = [self fontForHeader:XNGMarkdownParserHeader2];
-            }
-            
-            [self recurseOnString:textAsString withFont:font];
-            
-            // We already appended the recursive parser's results in recurseOnString.
-            textAsString = nil;
-            //            tokenString = @"MARKDOWN_MULTILINEHEADER";
-            break;
-        }
         case MARKDOWN_PARAGRAPH: {
             textAsString = @"\n\n";
             

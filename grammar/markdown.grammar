@@ -31,8 +31,6 @@ strongem1      \*\*\*[^\*]*\*\*\*
 em2            _[^_]*_
 strong2        __[^_]*__
 strongem2      ___[^_]*___
-header1        ^#{1,6}.*(grapedollarXYZ|\n)
-header2        .+\n[=-]+\n
 bulletstart    ^[-]+[ ]
 liststart    	^[0-9]+\.[ ]
 blockquote     ^>\n?(.\n|.)*?(\n+|grapedollarXYZ)
@@ -67,8 +65,6 @@ nl             \n|\r\n|\r|\f
 {strikethrough}                 {xng_markdown_consume(yytext, MARKDOWN_STRIKETHROUGH, yyscanner);}
 {codeblock}                     {xng_markdown_consume(yytext, MARKDOWN_CODEBLOCK, yyscanner);}
 {codespan}                      {xng_markdown_consume(yytext, MARKDOWN_CODESPAN, yyscanner);}
-{header1}                       {xng_markdown_consume(yytext, MARKDOWN_HEADER, yyscanner);}
-{header2}                       {xng_markdown_consume(yytext, MARKDOWN_MULTILINEHEADER, yyscanner);}
 {email} 			  {xng_markdown_consume(yytext, MARKDOWN_EMAIL, yyscanner);}
 {url}                           {xng_markdown_consume(yytext, MARKDOWN_URL, yyscanner);}
 {href}                          {xng_markdown_consume(yytext, MARKDOWN_HREF, yyscanner);}
