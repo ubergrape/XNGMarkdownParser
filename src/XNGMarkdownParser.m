@@ -343,13 +343,21 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
             
         }
         case MARKDOWN_CODEBLOCK: { // ``` ```
-            textAsString = [textAsString substringWithRange:NSMakeRange(4, textAsString.length - 7)];
+            textAsString = [textAsString substringWithRange:NSMakeRange(3, textAsString.length - 6)];
+            textAsString = [textAsString stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+            
+            // If more than a single line, add a new line to the end of the string so that the line gets fully colored
+            if ([textAsString containsString:@"\n"]) {
+                textAsString = [textAsString stringByAppendingString:@"\n"];
+            }
+            
             [attributes addEntriesFromDictionary:[self attributesForFontWithName:self.codeFontName]];
             //            tokenString = @"MARKDOWN_CODEBLOCK";
             break;
         }
         case MARKDOWN_CODESPAN: { // ` `
             textAsString = [textAsString substringWithRange:NSMakeRange(1, textAsString.length - 2)];
+            textAsString = [textAsString stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
             [attributes addEntriesFromDictionary:[self attributesForFontWithName:self.codeFontName]];
             //            tokenString = @"MARKDOWN_CODESPAN";
             break;
@@ -420,7 +428,7 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
                 [tempString replaceCharactersInRange:grapeDollarRange withString:@""];
                 textAsString = tempString;
             }
-
+            
             link.url = textAsString;
             link.range = NSMakeRange(_accum.length, textAsString.length);
             [_links addObject:link];
