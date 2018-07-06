@@ -106,17 +106,21 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
     _accum = [[NSMutableAttributedString alloc] init];
     
     const char *cstr = [tempString UTF8String];
-    FILE *markdownin = fmemopen((void *)cstr, [tempString lengthOfBytesUsingEncoding:NSUTF8StringEncoding], "r");
-    
-    yyscan_t scanner;
-    
-    xng_markdownlex_init(&scanner);
-    xng_markdownset_extra((__bridge void *)(self), scanner);
-    xng_markdownset_in(markdownin, scanner);
-    xng_markdownlex(scanner);
-    xng_markdownlex_destroy(scanner);
-    
-    fclose(markdownin);
+    if (@available(iOS 11.0, *)) {
+        FILE *markdownin = fmemopen((void *)cstr, [tempString lengthOfBytesUsingEncoding:NSUTF8StringEncoding], "r");
+        
+        yyscan_t scanner;
+        
+        xng_markdownlex_init(&scanner);
+        xng_markdownset_extra((__bridge void *)(self), scanner);
+        xng_markdownset_in(markdownin, scanner);
+        xng_markdownlex(scanner);
+        xng_markdownlex_destroy(scanner);
+        
+        fclose(markdownin);
+    } else {
+        // Fallback on earlier versions
+    }
     
     if (_bulletStarts.count > 0) {
         // Treat nested bullet points as flat ones...
@@ -287,169 +291,121 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
     
     XNGMarkdownParserCode codeToken = token;
     switch (codeToken) {
-        case MARKDOWN_EM: { // * *
-            textAsString = [textAsString substringWithRange:NSMakeRange(1, textAsString.length - 2)];
-            [attributes addEntriesFromDictionary:[self attributesForFontWithName:self.italicFontName]];
-            //            tokenString = @"MARKDOWN_EM";
-            break;
-        }
-        case MARKDOWN_STRONG: { // ** **
-            textAsString = [textAsString substringWithRange:NSMakeRange(2, textAsString.length - 4)];
-            [attributes addEntriesFromDictionary:[self attributesForFontWithName:self.boldFontName]];
-            //            tokenString = @"MARKDOWN_STRONG";
-            break;
-        }
-        case MARKDOWN_STRONGEM: { // *** ***
-            textAsString = [textAsString substringWithRange:NSMakeRange(3, textAsString.length - 6)];
-            [attributes addEntriesFromDictionary:[self attributesForFontWithName:self.boldItalicFontName]];
-            //            tokenString = @"MARKDOWN_STRONGEM";
-            break;
-        }
-        case MARKDOWN_STRIKETHROUGH: { // ~~ ~~
-            textAsString = [textAsString substringWithRange:NSMakeRange(2, textAsString.length - 4)];
-            [attributes addEntriesFromDictionary:@{NSStrikethroughStyleAttributeName: @(NSUnderlineStyleSingle)}];
-            //            tokenString = @"MARKDOWN_STRIKETHROUGH";
-            break;
-        }
-        case MARKDOWN_BLOCKQUOTE: { // >
-            
-            NSDictionary *attributesToAdd = [self attributesForFontWithName:self.quoteFontName];
-            
-            // Add attributes for whole string except for last '\n' (if there are two)
-            if ([@"\n"  isEqual: [textAsString substringWithRange:NSMakeRange(textAsString.length - 1, 1)]] &&
-                [@"\n"  isEqual: [textAsString substringWithRange:NSMakeRange(textAsString.length - 2, 1)]]) {
-                // Add attributes for whole string except for last character
+            case MARKDOWN_EM: { // * *
+                textAsString = [textAsString substringWithRange:NSMakeRange(1, textAsString.length - 2)];
+                [attributes addEntriesFromDictionary:[self attributesForFontWithName:self.italicFontName]];
+                //            tokenString = @"MARKDOWN_EM";
+                break;
+            }
+            case MARKDOWN_STRONG: { // ** **
+                textAsString = [textAsString substringWithRange:NSMakeRange(2, textAsString.length - 4)];
+                [attributes addEntriesFromDictionary:[self attributesForFontWithName:self.boldFontName]];
+                //            tokenString = @"MARKDOWN_STRONG";
+                break;
+            }
+            case MARKDOWN_STRONGEM: { // *** ***
+                textAsString = [textAsString substringWithRange:NSMakeRange(3, textAsString.length - 6)];
+                [attributes addEntriesFromDictionary:[self attributesForFontWithName:self.boldItalicFontName]];
+                //            tokenString = @"MARKDOWN_STRONGEM";
+                break;
+            }
+            case MARKDOWN_STRIKETHROUGH: { // ~~ ~~
+                textAsString = [textAsString substringWithRange:NSMakeRange(2, textAsString.length - 4)];
+                [attributes addEntriesFromDictionary:@{NSStrikethroughStyleAttributeName: @(NSUnderlineStyleSingle)}];
+                //            tokenString = @"MARKDOWN_STRIKETHROUGH";
+                break;
+            }
+            case MARKDOWN_BLOCKQUOTE: { // >
                 
-                // Trim last char
-                textAsString = [textAsString substringWithRange:NSMakeRange(0, textAsString.length - 1)];
+                NSDictionary *attributesToAdd = [self attributesForFontWithName:self.quoteFontName];
                 
-                // Add no attributes for last char
-                secondTextAsString = @"\n";
+                // Add attributes for whole string except for last '\n' (if there are two)
+                if ([@"\n"  isEqual: [textAsString substringWithRange:NSMakeRange(textAsString.length - 1, 1)]] &&
+                    [@"\n"  isEqual: [textAsString substringWithRange:NSMakeRange(textAsString.length - 2, 1)]]) {
+                    // Add attributes for whole string except for last character
+                    
+                    // Trim last char
+                    textAsString = [textAsString substringWithRange:NSMakeRange(0, textAsString.length - 1)];
+                    
+                    // Add no attributes for last char
+                    secondTextAsString = @"\n";
+                    
+                }
+                
+                // Add attributes to remaining string
+                [attributes addEntriesFromDictionary:attributesToAdd];
+                
+                // Second character is a blank space? Trim it!
+                if ([@" "  isEqual: [textAsString substringWithRange:NSMakeRange(1, 1)]]) {
+                    textAsString = [textAsString substringWithRange:NSMakeRange(2, textAsString.length - 2)];
+                } else {
+                    textAsString = [textAsString substringWithRange:NSMakeRange(1, textAsString.length - 1)];
+                }
+                
+                //            tokenString = @"MARKDOWN_BLOCKQUOTE";
+                break;
                 
             }
-            
-            // Add attributes to remaining string
-            [attributes addEntriesFromDictionary:attributesToAdd];
-            
-            // Second character is a blank space? Trim it!
-            if ([@" "  isEqual: [textAsString substringWithRange:NSMakeRange(1, 1)]]) {
-                textAsString = [textAsString substringWithRange:NSMakeRange(2, textAsString.length - 2)];
-            } else {
-                textAsString = [textAsString substringWithRange:NSMakeRange(1, textAsString.length - 1)];
-            }
-            
-            //            tokenString = @"MARKDOWN_BLOCKQUOTE";
-            break;
-            
-        }
-        case MARKDOWN_CODEBLOCK: { // ``` ```
-            textAsString = [textAsString substringWithRange:NSMakeRange(3, textAsString.length - 6)];
-            textAsString = [textAsString stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-            
-            // If more than a single line, add a new line to the end of the string so that the line gets fully colored
-            if ([textAsString containsString:@"\n"]) {
-                textAsString = [textAsString stringByAppendingString:@"\n"];
-            }
-            
-            [attributes addEntriesFromDictionary:[self attributesForFontWithName:self.codeFontName]];
-            //            tokenString = @"MARKDOWN_CODEBLOCK";
-            break;
-        }
-        case MARKDOWN_CODESPAN: { // ` `
-            textAsString = [textAsString substringWithRange:NSMakeRange(1, textAsString.length - 2)];
-            textAsString = [textAsString stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-            [attributes addEntriesFromDictionary:[self attributesForFontWithName:self.codeFontName]];
-            //            tokenString = @"MARKDOWN_CODESPAN";
-            break;
-        }
-        case MARKDOWN_PARAGRAPH: {
-            textAsString = @"\n\n";
-            
-            if (_bulletStarts.count > 0) {
-                // Treat nested bullet points as flat ones...
+            case MARKDOWN_CODEBLOCK: { // ``` ```
+                textAsString = [textAsString substringWithRange:NSMakeRange(3, textAsString.length - 6)];
+                textAsString = [textAsString stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
                 
-                // Finish off the previous dash and start a new one.
-                NSInteger lastBulletStart = [[_bulletStarts lastObject] intValue];
-                [_bulletStarts removeLastObject];
+                // If more than a single line, add a new line to the end of the string so that the line gets fully colored
+                if ([textAsString containsString:@"\n"]) {
+                    textAsString = [textAsString stringByAppendingString:@"\n"];
+                }
                 
-                [_accum addAttributes:[self paragraphStyle]
-                                range:NSMakeRange(lastBulletStart, _accum.length - lastBulletStart)];
+                [attributes addEntriesFromDictionary:[self attributesForFontWithName:self.codeFontName]];
+                //            tokenString = @"MARKDOWN_CODEBLOCK";
+                break;
             }
-            //            tokenString = @"MARKDOWN_PARAGRAPH";
-            break;
-        }
-        case MARKDOWN_BULLETSTART: {
-            NSInteger numberOfDashes = [textAsString rangeOfString:@" "].location;
-            if (_bulletStarts.count > 0 && _bulletStarts.count <= numberOfDashes) {
-                // Treat nested bullet points as flat ones...
+            case MARKDOWN_CODESPAN: { // ` `
+                textAsString = [textAsString substringWithRange:NSMakeRange(1, textAsString.length - 2)];
+                textAsString = [textAsString stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+                [attributes addEntriesFromDictionary:[self attributesForFontWithName:self.codeFontName]];
+                //            tokenString = @"MARKDOWN_CODESPAN";
+                break;
+            }
+            case MARKDOWN_PARAGRAPH: {
+                textAsString = @"\n\n";
                 
-                // Finish off the previous dash and start a new one.
-                NSInteger lastBulletStart = [[_bulletStarts lastObject] intValue];
-                [_bulletStarts removeLastObject];
+                if (_bulletStarts.count > 0) {
+                    // Treat nested bullet points as flat ones...
+                    
+                    // Finish off the previous dash and start a new one.
+                    NSInteger lastBulletStart = [[_bulletStarts lastObject] intValue];
+                    [_bulletStarts removeLastObject];
+                    
+                    [_accum addAttributes:[self paragraphStyle]
+                                    range:NSMakeRange(lastBulletStart, _accum.length - lastBulletStart)];
+                }
+                //            tokenString = @"MARKDOWN_PARAGRAPH";
+                break;
+            }
+            case MARKDOWN_BULLETSTART: {
+                NSInteger numberOfDashes = [textAsString rangeOfString:@" "].location;
+                if (_bulletStarts.count > 0 && _bulletStarts.count <= numberOfDashes) {
+                    // Treat nested bullet points as flat ones...
+                    
+                    // Finish off the previous dash and start a new one.
+                    NSInteger lastBulletStart = [[_bulletStarts lastObject] intValue];
+                    [_bulletStarts removeLastObject];
+                    
+                    [_accum addAttributes:[self paragraphStyle]
+                                    range:NSMakeRange(lastBulletStart, _accum.length - lastBulletStart)];
+                }
                 
-                [_accum addAttributes:[self paragraphStyle]
-                                range:NSMakeRange(lastBulletStart, _accum.length - lastBulletStart)];
+                [_bulletStarts addObject:@(_accum.length)];
+                textAsString = @"•\t";
+                //            tokenString = @"MARKDOWN_BULLETSTART";
+                break;
             }
-            
-            [_bulletStarts addObject:@(_accum.length)];
-            textAsString = @"•\t";
-            //            tokenString = @"MARKDOWN_BULLETSTART";
-            break;
-        }
-        case MARKDOWN_NEWLINE: {
-            textAsString = @"";
-            //            tokenString = @"MARKDOWN_NEWLINE";
-            break;
-        }
-        case MARKDOWN_EMAIL: {
-            XNGMarkdownLink *link = [[XNGMarkdownLink alloc] init];
-            
-            // Filter out grapedollar!
-            NSMutableString *tempString = [textAsString mutableCopy];
-            NSRange grapeDollarRange = [tempString rangeOfString:@"grapedollarXYZ"];
-            if (grapeDollarRange.location != NSNotFound) {
-                [tempString replaceCharactersInRange:grapeDollarRange withString:@""];
-                textAsString = tempString;
+            case MARKDOWN_NEWLINE: {
+                textAsString = @"";
+                //            tokenString = @"MARKDOWN_NEWLINE";
+                break;
             }
-            
-            link.url = [@"mailto:" stringByAppendingString:textAsString];
-            link.range = NSMakeRange(_accum.length, textAsString.length);
-            [_links addObject:link];
-            //            tokenString = @"MARKDOWN_EMAIL";
-            break;
-        }
-        case MARKDOWN_URL: {
-            XNGMarkdownLink *link = [[XNGMarkdownLink alloc] init];
-            
-            // Filter out grapedollar!
-            NSMutableString *tempString = [textAsString mutableCopy];
-            NSRange grapeDollarRange = [tempString rangeOfString:@"grapedollarXYZ"];
-            if (grapeDollarRange.location != NSNotFound) {
-                [tempString replaceCharactersInRange:grapeDollarRange withString:@""];
-                textAsString = tempString;
-            }
-            
-            link.url = textAsString;
-            link.range = NSMakeRange(_accum.length, textAsString.length);
-            [_links addObject:link];
-            //            tokenString = @"MARKDOWN_URL";
-            break;
-        }
-        case MARKDOWN_HREF: { // [Title] (url "tooltip")
-            textAsString = [textAsString stringByReplacingOccurrencesOfString:@"\\[" withString:@"["];
-            textAsString = [textAsString stringByReplacingOccurrencesOfString:@"\\]" withString:@"]"];
-            
-            NSRange rangeOfFirstOpenBracket = [textAsString rangeOfString:@"[" options:0];
-            NSRange rangeOfLastCloseBracket = [textAsString rangeOfString:@"]" options:NSBackwardsSearch];
-            NSRange rangeOfLastOpenParenthesis = [textAsString rangeOfString:@"(" options:NSBackwardsSearch];
-            NSRange rangeOfLastCloseParenthesis = [textAsString rangeOfString:@")" options:NSBackwardsSearch];
-            
-            NSRange linkTitleRange = NSMakeRange(rangeOfFirstOpenBracket.location + 1,
-                                                 rangeOfLastCloseBracket.location - rangeOfFirstOpenBracket.location - 1);
-            NSRange linkURLRange = NSMakeRange(rangeOfLastOpenParenthesis.location + 1,
-                                               rangeOfLastCloseParenthesis.location - rangeOfLastOpenParenthesis.location - 1);
-            
-            if (linkTitleRange.location != NSNotFound && linkURLRange.location != NSNotFound) {
+            case MARKDOWN_EMAIL: {
                 XNGMarkdownLink *link = [[XNGMarkdownLink alloc] init];
                 
                 // Filter out grapedollar!
@@ -460,15 +416,63 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
                     textAsString = tempString;
                 }
                 
-                link.url = [textAsString substringWithRange:linkURLRange];
-                link.range = NSMakeRange(_accum.length, linkTitleRange.length);
-                
+                link.url = [@"mailto:" stringByAppendingString:textAsString];
+                link.range = NSMakeRange(_accum.length, textAsString.length);
                 [_links addObject:link];
-                textAsString = [textAsString substringWithRange:linkTitleRange];
+                //            tokenString = @"MARKDOWN_EMAIL";
+                break;
             }
-            //            tokenString = @"MARKDOWN_HREF";
-            break;
-        }
+            case MARKDOWN_URL: {
+                XNGMarkdownLink *link = [[XNGMarkdownLink alloc] init];
+                
+                // Filter out grapedollar!
+                NSMutableString *tempString = [textAsString mutableCopy];
+                NSRange grapeDollarRange = [tempString rangeOfString:@"grapedollarXYZ"];
+                if (grapeDollarRange.location != NSNotFound) {
+                    [tempString replaceCharactersInRange:grapeDollarRange withString:@""];
+                    textAsString = tempString;
+                }
+                
+                link.url = textAsString;
+                link.range = NSMakeRange(_accum.length, textAsString.length);
+                [_links addObject:link];
+                //            tokenString = @"MARKDOWN_URL";
+                break;
+            }
+            case MARKDOWN_HREF: { // [Title] (url "tooltip")
+                textAsString = [textAsString stringByReplacingOccurrencesOfString:@"\\[" withString:@"["];
+                textAsString = [textAsString stringByReplacingOccurrencesOfString:@"\\]" withString:@"]"];
+                
+                NSRange rangeOfFirstOpenBracket = [textAsString rangeOfString:@"[" options:0];
+                NSRange rangeOfLastCloseBracket = [textAsString rangeOfString:@"]" options:NSBackwardsSearch];
+                NSRange rangeOfLastOpenParenthesis = [textAsString rangeOfString:@"(" options:NSBackwardsSearch];
+                NSRange rangeOfLastCloseParenthesis = [textAsString rangeOfString:@")" options:NSBackwardsSearch];
+                
+                NSRange linkTitleRange = NSMakeRange(rangeOfFirstOpenBracket.location + 1,
+                                                     rangeOfLastCloseBracket.location - rangeOfFirstOpenBracket.location - 1);
+                NSRange linkURLRange = NSMakeRange(rangeOfLastOpenParenthesis.location + 1,
+                                                   rangeOfLastCloseParenthesis.location - rangeOfLastOpenParenthesis.location - 1);
+                
+                if (linkTitleRange.location != NSNotFound && linkURLRange.location != NSNotFound) {
+                    XNGMarkdownLink *link = [[XNGMarkdownLink alloc] init];
+                    
+                    // Filter out grapedollar!
+                    NSMutableString *tempString = [textAsString mutableCopy];
+                    NSRange grapeDollarRange = [tempString rangeOfString:@"grapedollarXYZ"];
+                    if (grapeDollarRange.location != NSNotFound) {
+                        [tempString replaceCharactersInRange:grapeDollarRange withString:@""];
+                        textAsString = tempString;
+                    }
+                    
+                    link.url = [textAsString substringWithRange:linkURLRange];
+                    link.range = NSMakeRange(_accum.length, linkTitleRange.length);
+                    
+                    [_links addObject:link];
+                    textAsString = [textAsString substringWithRange:linkTitleRange];
+                }
+                //            tokenString = @"MARKDOWN_HREF";
+                break;
+            }
         default: {
             //            tokenString = @"DEFAULT";
             break;
