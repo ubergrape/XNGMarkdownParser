@@ -106,21 +106,17 @@ int xng_markdown_consume(char *text, XNGMarkdownParserCode token, yyscan_t scann
     _accum = [[NSMutableAttributedString alloc] init];
     
     const char *cstr = [tempString UTF8String];
-    if (@available(iOS 11.0, *)) {
-        FILE *markdownin = fmemopen((void *)cstr, [tempString lengthOfBytesUsingEncoding:NSUTF8StringEncoding], "r");
-        
-        yyscan_t scanner;
-        
-        xng_markdownlex_init(&scanner);
-        xng_markdownset_extra((__bridge void *)(self), scanner);
-        xng_markdownset_in(markdownin, scanner);
-        xng_markdownlex(scanner);
-        xng_markdownlex_destroy(scanner);
-        
-        fclose(markdownin);
-    } else {
-        // Fallback on earlier versions
-    }
+    FILE *markdownin = fmemopen((void *)cstr, [tempString lengthOfBytesUsingEncoding:NSUTF8StringEncoding], "r");
+    
+    yyscan_t scanner;
+    
+    xng_markdownlex_init(&scanner);
+    xng_markdownset_extra((__bridge void *)(self), scanner);
+    xng_markdownset_in(markdownin, scanner);
+    xng_markdownlex(scanner);
+    xng_markdownlex_destroy(scanner);
+    
+    fclose(markdownin);
     
     if (_bulletStarts.count > 0) {
         // Treat nested bullet points as flat ones...
